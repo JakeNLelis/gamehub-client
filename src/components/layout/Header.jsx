@@ -50,10 +50,25 @@ const Header = () => {
           </Link>
           {/* Navigation and Auth */}
           <div className="flex items-center space-x-4">
+            {/* Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link
+                to="/search"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Browse
+              </Link>
+              <Link
+                to="/trending"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Trending
+              </Link>
+            </nav>
             {/* Search Button */}
             <Link
               to="/search"
-              className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition-colors text-gray-300 hover:text-white"
+              className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition-colors text-gray-300 hover:text-white md:hidden"
             >
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Search</span>

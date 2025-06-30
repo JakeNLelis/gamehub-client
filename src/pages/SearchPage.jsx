@@ -14,6 +14,34 @@ const SearchPage = () => {
   // Get initial search query from URL parameters
   const initialQuery = searchParams.get("q") || "";
 
+  // Function to load all games with pagination
+  const loadAllGames = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const { gameService } = await import("../services/gameService.js");
+      const response = await gameService.getGames({
+        page,
+        limit: 20,
+      });
+
+      if (response.success) {
+        setSearchResults(response.data);
+        setPagination(response.pagination);
+
+        // Set search params for pagination (indicating this is showing all games)
+        setCurrentSearchParams({
+          page,
+          limit: 20,
+          isAllGames: true, // Flag to indicate this is showing all games
+        });
+      }
+    } catch (error) {
+      console.error("Error loading all games:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Handle pagination
   const handlePageChange = async (newPage) => {
     if (!currentSearchParams || isLoading) return;
@@ -21,6 +49,12 @@ const SearchPage = () => {
     setIsLoading(true);
 
     try {
+      // Check if we're showing all games
+      if (currentSearchParams.isAllGames) {
+        await loadAllGames(newPage);
+        return;
+      }
+
       // Import the game service
       const { gameService } = await import("../services/gameService.js");
 
@@ -89,13 +123,12 @@ const SearchPage = () => {
     [setSearchParams]
   ); // Handle clearing results
   const handleClearResults = useCallback(() => {
-    setSearchResults([]);
-    setPagination(null);
-    setCurrentSearchParams(null);
     setSearchParams({});
     sessionStorage.removeItem("searchResults");
-  }, [setSearchParams]);
-  // Load results from session storage on mount (if coming from header search)
+    // Load all games again instead of just clearing
+    loadAllGames();
+  }, [setSearchParams, loadAllGames]);
+  // Load all games by default or restore from session storage
   useEffect(() => {
     const savedResults = sessionStorage.getItem("searchResults");
     if (savedResults) {
@@ -117,14 +150,14 @@ const SearchPage = () => {
       } catch {
         sessionStorage.removeItem("searchResults");
       }
+    } else {
+      // Load all games by default if no saved results and no initial query
+      const currentQuery = searchParams.get("q");
+      if (!currentQuery) {
+        loadAllGames();
+      }
     }
-
-    // Check URL parameters for initial search
-    const currentQuery = searchParams.get("q");
-    if (currentQuery && !savedResults) {
-      // If there's a query in URL but no saved results, we might need to re-search
-    }
-  }, [searchParams]);
+  }, [searchParams, loadAllGames]);
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -159,10 +192,13 @@ const SearchPage = () => {
             {/* Results Header */}
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-white">
-                Search Results
+                {currentSearchParams?.isAllGames
+                  ? "All Games"
+                  : "Search Results"}
                 {pagination && (
                   <span className="text-gray-400 text-base font-normal ml-2">
-                    ({pagination.totalGames} games found)
+                    ({pagination.totalGames} games{" "}
+                    {currentSearchParams?.isAllGames ? "total" : "found"})
                   </span>
                 )}
               </h2>
@@ -293,18 +329,20 @@ const SearchPage = () => {
           </div>
         )}
 
-        {/* No Results Message */}
-        {!isLoading && searchResults.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-lg mb-4">
-              No search results yet
+        {/* No Results Message - only show when there was an actual search */}
+        {!isLoading &&
+          searchResults.length === 0 &&
+          currentSearchParams &&
+          !currentSearchParams.isAllGames && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-lg mb-4">
+                No search results found
+              </div>
+              <p className="text-gray-500">
+                Try adjusting your search terms or filters to find more games
+              </p>{" "}
             </div>
-            <p className="text-gray-500">
-              Use the search bar above to find games by name, genre, platform,
-              or rating
-            </p>{" "}
-          </div>
-        )}
+          )}
       </div>
       <Footer />
     </div>

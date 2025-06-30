@@ -198,9 +198,12 @@ const Homepage = () => {
             <section className="mb-16">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-3xl font-bold">Trending Games</h2>
-                <button className="text-blue-400 hover:text-blue-300 transition-colors">
+                <a
+                  href="/trending"
+                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                >
                   View All
-                </button>
+                </a>
               </div>
 
               {trendingLoading ? (
@@ -278,9 +281,12 @@ const Homepage = () => {
             <section className="mb-16">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-3xl font-bold">New Releases</h2>
-                <button className="text-blue-400 hover:text-blue-300 transition-colors">
+                <a
+                  href="/trending?tab=new"
+                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                >
                   View All
-                </button>
+                </a>
               </div>
 
               {newLoading ? (
@@ -331,9 +337,12 @@ const Homepage = () => {
             <section>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-3xl font-bold">All Games</h2>
-                <button className="text-blue-400 hover:text-blue-300 transition-colors">
+                <a
+                  href="/search"
+                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                >
                   Browse All Games
-                </button>
+                </a>
               </div>
               {allLoading ? (
                 <div className="flex justify-center py-8">

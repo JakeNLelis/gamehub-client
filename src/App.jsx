@@ -13,6 +13,7 @@ import Header from "./components/layout/Header.jsx";
 import Login from "./components/auth/Login.jsx";
 import Homepage from "./pages/Homepage.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
+import TrendingAndNewPage from "./pages/TrendingAndNewPage.jsx";
 import GameDetailPage from "./pages/GameDetailPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import OAuthCallback from "./pages/OAuthCallback.jsx";
@@ -69,6 +70,7 @@ const AppContent = () => {
         <Route path="/api/auth/google/callback" element={<OAuthCallback />} />
         <Route path="/" element={<Homepage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/trending" element={<TrendingAndNewPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
         <Route
           path="/profile"
