@@ -12,6 +12,7 @@ import {
   User,
   Trash2,
   Edit3,
+  ExternalLink,
 } from "lucide-react";
 import LoadingSpinner from "../components/common/LoadingSpinner.jsx";
 import Footer from "../components/layout/Footer.jsx";
@@ -308,10 +309,32 @@ const GameDetailPage = () => {
                   </span>
                 </div>
               )}
+
+              {game.publisher && (
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-300">
+                    Publisher: {game.publisher}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-3">
+              {/* Play Game Button */}
+              {game.gameUrl && (
+                <a
+                  href={game.gameUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 text-white no-underline"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  <span>Play Game</span>
+                </a>
+              )}
+
               {isAuthenticated ? (
                 <>
                   {!userReview ? (

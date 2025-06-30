@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Heart, MessageSquare } from "lucide-react";
+import { Star, Heart, MessageSquare, ExternalLink } from "lucide-react";
 
 const GameCard = ({
   game,
@@ -51,6 +51,18 @@ const GameCard = ({
           <span className="bg-gray-700 px-2 py-1 rounded text-xs text-gray-300">
             {game.platform || "PC"}
           </span>
+          {game.gameUrl && (
+            <a
+              href={game.gameUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+              title="Play Game"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
           {showActions && onFavoriteToggle && (
             <button
               onClick={(e) => {
@@ -86,6 +98,18 @@ const GameCard = ({
         {showActions && size === "large" && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
             <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+              {game.gameUrl && (
+                <a
+                  href={game.gameUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-green-600 hover:bg-green-700 p-2 rounded-full transition-colors"
+                  title="Play Game"
+                >
+                  <ExternalLink className="w-4 h-4 text-white" />
+                </a>
+              )}
               {onFavoriteToggle && (
                 <button
                   onClick={(e) => {
@@ -154,6 +178,21 @@ const GameCard = ({
             <div className="text-sm text-gray-400">
               <span className="font-medium">Developer: </span>
               {game.developer}
+            </div>
+          )}
+          {/* Play Game Button */}
+          {game.gameUrl && (
+            <div className="mt-3">
+              <a
+                href={game.gameUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Play Game</span>
+              </a>
             </div>
           )}{" "}
         </div>
