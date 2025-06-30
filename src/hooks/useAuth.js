@@ -45,17 +45,11 @@ export const useUploadAvatar = () => {
   return useMutation({
     mutationFn: authService.uploadAvatar,
     onSuccess: (data) => {
-      if (data.success) {
+      if (data.success && data.user) {
+        // Update user context immediately with the response data
+        updateUser(data.user);
+        // Invalidate queries to ensure fresh data
         queryClient.invalidateQueries(["profile"]);
-        // Update user context with new avatar
-        const currentUser = queryClient.getQueryData(["profile"]);
-        if (currentUser?.data) {
-          updateUser({
-            ...currentUser.data,
-            avatar: data.data.avatar,
-            avatarUrl: data.data.avatarUrl,
-          });
-        }
       }
     },
   });
@@ -63,21 +57,24 @@ export const useUploadAvatar = () => {
 
 export const useDeleteAvatar = () => {
   const queryClient = useQueryClient();
-  const { updateUser } = useAuth();
+  const { updateUser, user } = useAuth();
 
   return useMutation({
     mutationFn: authService.deleteAvatar,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["profile"]);
-      // Update user context to remove avatar
-      const currentUser = queryClient.getQueryData(["profile"]);
-      if (currentUser?.data) {
+    onSuccess: (data) => {
+      if (data.success && data.user) {
+        // Update user context immediately with the response data
+        updateUser(data.user);
+      } else {
+        // Fallback: manually update user to remove avatar
         updateUser({
-          ...currentUser.data,
+          ...user,
           avatar: null,
           avatarUrl: null,
         });
       }
+      // Invalidate queries to ensure fresh data
+      queryClient.invalidateQueries(["profile"]);
     },
   });
 };

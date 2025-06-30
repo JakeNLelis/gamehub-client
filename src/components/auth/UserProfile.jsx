@@ -86,168 +86,156 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-8">
-          <div className="flex items-center space-x-6">
-            {/* Avatar */}
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt="User avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User className="w-12 h-12 text-white" />
-                )}
-              </div>
+    <div className="w-full">
+      {/* Alerts */}
+      {error && (
+        <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
 
-              {/* Avatar Actions */}
-              <div className="absolute -bottom-2 -right-2 flex space-x-1">
-                <label className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full cursor-pointer transition-colors">
-                  <Camera className="w-4 h-4" />
+      {success && (
+        <div className="bg-green-500/20 border border-green-500/30 text-green-300 px-4 py-3 rounded-lg mb-4">
+          {success}
+        </div>
+      )}
+
+      {/* Loading States */}
+      {(uploadAvatarMutation.isPending ||
+        deleteAvatarMutation.isPending ||
+        updateProfileMutation.isPending) && (
+        <div className="bg-blue-500/20 border border-blue-500/30 text-blue-300 px-4 py-3 rounded-lg mb-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <span>
+              {uploadAvatarMutation.isPending && "Uploading avatar..."}
+              {deleteAvatarMutation.isPending && "Removing avatar..."}
+              {updateProfileMutation.isPending && "Updating profile..."}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Main Profile Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
+        {/* Left Side - User Info */}
+        <div className="flex items-center space-x-6">
+          {/* Avatar */}
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden ring-4 ring-slate-600">
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt="User avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-10 h-10 text-gray-400" />
+              )}
+            </div>
+
+            {/* Avatar Actions */}
+            <div className="absolute -bottom-1 -right-1 flex space-x-1">
+              <label className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg">
+                <Camera className="w-3 h-3" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  disabled={uploadAvatarMutation.isPending}
+                />
+              </label>
+
+              {user.avatarUrl && (
+                <button
+                  onClick={handleDeleteAvatar}
+                  disabled={deleteAvatarMutation.isPending}
+                  className="bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full transition-colors disabled:opacity-50 shadow-lg"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* User Details */}
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-2">
+              {isEditing ? (
+                <div className="flex items-center space-x-2 flex-1">
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    className="hidden"
-                    disabled={uploadAvatarMutation.isPending}
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="bg-slate-700 text-white placeholder-gray-400 px-3 py-2 rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none flex-1"
+                    placeholder="Enter your name"
                   />
-                </label>
-
-                {user.avatarUrl && (
                   <button
-                    onClick={handleDeleteAvatar}
-                    disabled={deleteAvatarMutation.isPending}
-                    className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors disabled:opacity-50"
+                    onClick={handleSaveProfile}
+                    disabled={updateProfileMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Save className="w-4 h-4" />
                   </button>
-                )}
-              </div>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditedName(user.name);
+                      setError("");
+                    }}
+                    className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold text-white">{user.name}</h1>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white p-2 rounded-lg transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </div>
-
-            {/* User Info */}
-            <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-2">
-                {isEditing ? (
-                  <div className="flex items-center space-x-2 flex-1">
-                    <input
-                      type="text"
-                      value={editedName}
-                      onChange={(e) => setEditedName(e.target.value)}
-                      className="bg-white/20 text-white placeholder-white/70 px-3 py-2 rounded border border-white/30 focus:border-white focus:outline-none flex-1"
-                      placeholder="Enter your name"
-                    />
-                    <button
-                      onClick={handleSaveProfile}
-                      disabled={updateProfileMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 text-white p-2 rounded transition-colors disabled:opacity-50"
-                    >
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setEditedName(user.name);
-                        setError("");
-                      }}
-                      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <h1 className="text-2xl font-bold text-white">
-                      {user.name}
-                    </h1>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="bg-white/20 hover:bg-white/30 text-white p-2 rounded transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
-              </div>
-              <p className="text-white/80">{user.email}</p>
-              <p className="text-white/60 text-sm mt-1">
-                Member since {new Date(user.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+            <p className="text-gray-300 text-lg">{user.email}</p>
+            <p className="text-gray-400 text-sm">
+              Member since {new Date(user.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Alerts */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
+        {/* Right Side - Account Actions */}
+        <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3 lg:ml-6">
+          <button
+            onClick={logout}
+            className="flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors min-w-[120px]"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
 
-          {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-              {success}
-            </div>
-          )}
-
-          {/* Loading States */}
-          {(uploadAvatarMutation.isPending ||
-            deleteAvatarMutation.isPending ||
-            updateProfileMutation.isPending) && (
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span>
-                  {uploadAvatarMutation.isPending && "Uploading avatar..."}
-                  {deleteAvatarMutation.isPending && "Removing avatar..."}
-                  {updateProfileMutation.isPending && "Updating profile..."}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Account Actions */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Account Actions
-            </h2>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={logout}
-                className="flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
-
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Delete Account</span>
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors min-w-[120px]"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete Account</span>
+          </button>
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold text-white mb-4">
               Delete Account
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-300 mb-6">
               Are you sure you want to delete your account? This action cannot
               be undone and will permanently remove all your data, including
               reviews and favorites.
@@ -255,13 +243,13 @@ const UserProfile = () => {
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition-colors"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteAccount}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Delete Account
               </button>

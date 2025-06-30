@@ -23,7 +23,6 @@ const ProfilePage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFavorites, setTotalFavorites] = useState(0);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
-  const [activeTab, setActiveTab] = useState("profile"); // 'profile' or 'favorites'
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -99,27 +98,18 @@ const ProfilePage = () => {
   );
   // Initial load
   useEffect(() => {
-    if (user && activeTab === "favorites") {
+    if (user) {
       fetchFavorites();
     }
-  }, [user, activeTab, fetchFavorites]);
+  }, [user, fetchFavorites]);
 
   // Handle filter changes with debounce
   useEffect(() => {
-    if (activeTab === "favorites") {
-      const timeoutId = setTimeout(() => {
-        handleFilterChange();
-      }, 500);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [
-    searchTerm,
-    selectedGenre,
-    selectedPlatform,
-    sortBy,
-    activeTab,
-    handleFilterChange,
-  ]);
+    const timeoutId = setTimeout(() => {
+      handleFilterChange();
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, selectedGenre, selectedPlatform, sortBy, handleFilterChange]);
 
   if (authLoading) {
     return (
@@ -144,62 +134,23 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-slate-900 pt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-700 flex items-center justify-center">
-              {user.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-2xl font-bold text-white">
-                  {user.name?.charAt(0)?.toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">{user.name}</h1>
-              <p className="text-gray-400">{user.email}</p>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-slate-800 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                activeTab === "profile"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-slate-700"
-              }`}
-            >
-              Profile Settings
-            </button>
-            <button
-              onClick={() => setActiveTab("favorites")}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                activeTab === "favorites"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-slate-700"
-              }`}
-            >
-              <Heart className="w-4 h-4 inline mr-2" />
-              My Favorites ({totalFavorites})
-            </button>
-          </div>
+        {/* User Profile Section */}
+        <div className="bg-slate-800 rounded-lg p-6 mb-8">
+          <UserProfile />
         </div>
 
-        {/* Tab Content */}
-        {activeTab === "profile" && (
-          <div className="bg-slate-800 rounded-lg p-6">
-            <UserProfile />
+        {/* Favorites Section */}
+        <div>
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <Heart className="w-6 h-6 text-red-500" />
+              <h2 className="text-2xl font-bold text-white">My Favorites</h2>
+              <span className="bg-slate-700 text-white px-3 py-1 rounded-full text-sm">
+                {totalFavorites}
+              </span>
+            </div>
           </div>
-        )}
-
-        {activeTab === "favorites" && (
           <div>
             {/* Favorites Controls */}
             <div className="bg-slate-800 rounded-lg p-6 mb-6">
@@ -384,7 +335,7 @@ const ProfilePage = () => {
               </>
             )}
           </div>
-        )}
+        </div>
       </div>
       <Footer />
     </div>
