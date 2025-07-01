@@ -44,13 +44,26 @@ const ReviewManagement = () => {
 
   if (error) {
     return (
-      <div className="p-6 text-center text-red-400">
-        Error loading reviews: {error.message}
+      <div className="p-6">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <h3 className="text-red-400 font-semibold mb-2">
+            Error Loading Reviews
+          </h3>
+          <p className="text-red-300 text-sm">
+            {error.message || "An unexpected error occurred"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
-  const { data: reviews, pagination } = data;
+  const { data: reviews = [], pagination = {} } = data || {};
 
   return (
     <div className="p-6">
@@ -89,15 +102,15 @@ const ReviewManagement = () => {
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-white">
-                    {review.user?.name || "Unknown User"}
+                    {review.userId?.name || "Unknown User"}
                   </div>
                   <div className="text-sm text-gray-400">
-                    {review.user?.email || "No email"}
+                    {review.userId?.email || "No email"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-white">
-                    {review.game?.title || "Unknown Game"}
+                    {review.gameId?.title || "Unknown Game"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -132,8 +145,8 @@ const ReviewManagement = () => {
                     onClick={() =>
                       handleDelete(
                         review._id,
-                        review.game?.title || "Unknown Game",
-                        review.user?.name || "Unknown User"
+                        review.gameId?.title || "Unknown Game",
+                        review.userId?.name || "Unknown User"
                       )
                     }
                     className="text-red-400 hover:text-red-300 transition-colors"
@@ -153,23 +166,26 @@ const ReviewManagement = () => {
         <div className="mt-6 flex items-center justify-between">
           <div className="text-sm text-gray-300">
             Showing{" "}
-            {(pagination.currentPage - 1) * pagination.reviewsPerPage + 1} to{" "}
+            {((pagination.currentPage || 1) - 1) *
+              (pagination.reviewsPerPage || 10) +
+              1}{" "}
+            to{" "}
             {Math.min(
-              pagination.currentPage * pagination.reviewsPerPage,
-              pagination.totalReviews
+              (pagination.currentPage || 1) * (pagination.reviewsPerPage || 10),
+              pagination.totalReviews || 0
             )}{" "}
-            of {pagination.totalReviews} reviews
+            of {pagination.totalReviews || 0} reviews
           </div>
           <div className="flex space-x-2">
             <button
-              onClick={() => setCurrentPage(pagination.currentPage - 1)}
+              onClick={() => setCurrentPage((pagination.currentPage || 1) - 1)}
               disabled={!pagination.hasPreviousPage}
               className="px-3 py-2 border border-slate-600 rounded-md text-sm font-medium text-gray-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
             <button
-              onClick={() => setCurrentPage(pagination.currentPage + 1)}
+              onClick={() => setCurrentPage((pagination.currentPage || 1) + 1)}
               disabled={!pagination.hasNextPage}
               className="px-3 py-2 border border-slate-600 rounded-md text-sm font-medium text-gray-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
