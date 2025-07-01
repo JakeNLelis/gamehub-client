@@ -23,13 +23,36 @@ const AdminStats = () => {
 
   if (error) {
     return (
-      <div className="p-6 text-center text-red-400">
-        Error loading statistics: {error.message}
+      <div className="p-6">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <h3 className="text-red-400 font-semibold mb-2">
+            Error Loading Statistics
+          </h3>
+          <p className="text-red-300 text-sm">
+            {error.message || "An unexpected error occurred"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
-  const { overview, recentActivity, insights } = stats;
+  // Handle case where stats data might be incomplete
+  const safeStats = stats || {};
+  const { overview = {}, recentActivity = {}, insights = {} } = safeStats;
+  const {
+    totalGames = 0,
+    totalUsers = 0,
+    totalReviews = 0,
+    totalAdmins = 0,
+  } = overview;
+  const { recentGames = [], recentReviews = [] } = recentActivity;
+  const { topRatedGames = [] } = insights;
 
   return (
     <div className="p-6">
@@ -44,9 +67,7 @@ const AdminStats = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-blue-400">Total Games</p>
-              <p className="text-2xl font-bold text-white">
-                {overview.totalGames}
-              </p>
+              <p className="text-2xl font-bold text-white">{totalGames}</p>
             </div>
           </div>
         </div>
@@ -58,9 +79,7 @@ const AdminStats = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-green-400">Total Users</p>
-              <p className="text-2xl font-bold text-white">
-                {overview.totalUsers}
-              </p>
+              <p className="text-2xl font-bold text-white">{totalUsers}</p>
             </div>
           </div>
         </div>
@@ -74,9 +93,7 @@ const AdminStats = () => {
               <p className="text-sm font-medium text-yellow-400">
                 Total Reviews
               </p>
-              <p className="text-2xl font-bold text-white">
-                {overview.totalReviews}
-              </p>
+              <p className="text-2xl font-bold text-white">{totalReviews}</p>
             </div>
           </div>
         </div>
@@ -88,9 +105,7 @@ const AdminStats = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-purple-400">Admins</p>
-              <p className="text-2xl font-bold text-white">
-                {overview.totalAdmins}
-              </p>
+              <p className="text-2xl font-bold text-white">{totalAdmins}</p>
             </div>
           </div>
         </div>
@@ -104,21 +119,28 @@ const AdminStats = () => {
             Recent Games
           </h3>
           <div className="space-y-3">
-            {recentActivity.recentGames.map((game) => (
-              <div key={game._id} className="flex items-center space-x-3">
-                <img
-                  src={game.thumbnail}
-                  alt={game.title}
-                  className="w-12 h-12 rounded object-cover"
-                />
-                <div>
-                  <p className="font-medium text-white">{game.title}</p>
-                  <p className="text-sm text-gray-400">
-                    {new Date(game.createdAt).toLocaleDateString()}
-                  </p>
+            {recentGames.length > 0 ? (
+              recentGames.map((game) => (
+                <div key={game._id} className="flex items-center space-x-3">
+                  <img
+                    src={game.thumbnail || "/placeholder-game.jpg"}
+                    alt={game.title}
+                    className="w-12 h-12 rounded object-cover"
+                    onError={(e) => {
+                      e.target.src = "/placeholder-game.jpg";
+                    }}
+                  />
+                  <div>
+                    <p className="font-medium text-white">{game.title}</p>
+                    <p className="text-sm text-gray-400">
+                      {new Date(game.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-400 text-sm">No recent games</p>
+            )}
           </div>
         </div>
 
@@ -128,34 +150,42 @@ const AdminStats = () => {
             Recent Reviews
           </h3>
           <div className="space-y-3">
-            {recentActivity.recentReviews.map((review) => (
-              <div
-                key={review._id}
-                className="border-b border-slate-600 pb-3 last:border-b-0"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-white">{review.user.name}</p>
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <span
-                        key={i}
-                        className={`text-sm ${
-                          i < review.rating
-                            ? "text-yellow-400"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        ⭐
-                      </span>
-                    ))}
+            {recentReviews.length > 0 ? (
+              recentReviews.map((review) => (
+                <div
+                  key={review._id}
+                  className="border-b border-slate-600 pb-3 last:border-b-0"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-white">
+                      {review.userId?.name || "Unknown User"}
+                    </p>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-sm ${
+                            i < review.rating
+                              ? "text-yellow-400"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          ⭐
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-sm text-gray-400">
+                    {review.gameId?.title || "Unknown Game"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-400">{review.game.title}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {new Date(review.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-400 text-sm">No recent reviews</p>
+            )}
           </div>
         </div>
       </div>
@@ -166,32 +196,39 @@ const AdminStats = () => {
           Top Rated Games
         </h3>
         <div className="space-y-3">
-          {insights.topRatedGames.map((game, index) => (
-            <div key={game._id} className="flex items-center space-x-3">
-              <span className="flex-shrink-0 w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-sm font-bold">
-                {index + 1}
-              </span>
-              <img
-                src={game.thumbnail}
-                alt={game.title}
-                className="w-12 h-12 rounded object-cover"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-white">{game.title}</p>
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center">
-                    <span className="text-yellow-400 text-sm">⭐</span>
-                    <span className="text-sm text-gray-300 ml-1">
-                      {game.averageRating.toFixed(1)}
+          {topRatedGames.length > 0 ? (
+            topRatedGames.map((game, index) => (
+              <div key={game._id} className="flex items-center space-x-3">
+                <span className="flex-shrink-0 w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-sm font-bold">
+                  {index + 1}
+                </span>
+                <img
+                  src={game.thumbnail || "/placeholder-game.jpg"}
+                  alt={game.title}
+                  className="w-12 h-12 rounded object-cover"
+                  onError={(e) => {
+                    e.target.src = "/placeholder-game.jpg";
+                  }}
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-white">{game.title}</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center">
+                      <span className="text-yellow-400 text-sm">⭐</span>
+                      <span className="text-sm text-gray-300 ml-1">
+                        {game.averageRating.toFixed(1)}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-400">
+                      ({game.totalReviews} reviews)
                     </span>
                   </div>
-                  <span className="text-sm text-gray-400">
-                    ({game.totalReviews} reviews)
-                  </span>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-400 text-sm">No top rated games yet</p>
+          )}
         </div>
       </div>
     </div>

@@ -65,7 +65,8 @@ const GamesTable = ({
             {games.map((game) => (
               <tr
                 key={game._id}
-                className="hover:bg-slate-700 transition-colors"
+                className="hover:bg-slate-700 transition-colors cursor-pointer"
+                onClick={() => (window.location.href = `/games/${game._id}`)}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -125,17 +126,29 @@ const GamesTable = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => onEdit(game)}
-                      className="text-blue-400 hover:text-blue-300 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(game);
+                      }}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-blue-300 transition-all duration-200 hover:scale-105"
+                      title="Edit game"
                     >
-                      Edit
+                      ✏️
                     </button>
                     <button
-                      onClick={() => onDelete(game._id, game.title)}
-                      className="text-red-400 hover:text-red-300 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(game._id, game.title);
+                      }}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                       disabled={deleteGameMutation.isPending}
+                      title={
+                        deleteGameMutation.isPending
+                          ? "Deleting..."
+                          : "Delete game"
+                      }
                     >
-                      {deleteGameMutation.isPending ? "Deleting..." : "Delete"}
+                      {deleteGameMutation.isPending ? "⏳" : "🗑️"}
                     </button>
                   </div>
                 </td>
@@ -161,16 +174,18 @@ const GamesTable = ({
             <button
               onClick={() => setCurrentPage(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className="px-3 py-2 border border-slate-600 rounded-md text-sm font-medium text-gray-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center px-4 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <span className="mr-2">←</span>
               Previous
             </button>
             <button
               onClick={() => setCurrentPage(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className="px-3 py-2 border border-slate-600 rounded-md text-sm font-medium text-gray-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center px-4 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
+              <span className="ml-2">→</span>
             </button>
           </div>
         </div>

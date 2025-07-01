@@ -487,9 +487,9 @@ const GameDetailPage = () => {
                 <MessageSquare className="w-6 h-6 text-blue-400" />
                 <span>About This Game</span>
               </h2>
-              <p className="text-gray-300 leading-relaxed">
+              <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
                 {game.shortDescription || game.short_description}
-              </p>
+              </div>
             </div>
           )}
 
@@ -545,6 +545,12 @@ const GameDetailPage = () => {
                     </div>
                   </div>
                 )}
+                <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Remember</div>
+                  <div className="text-white font-medium">
+                    Specifications may change during development
+                  </div>
+                </div>
               </div>
             </div>
           )}
