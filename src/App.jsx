@@ -19,6 +19,8 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import OAuthCallback from "./pages/OAuthCallback.jsx";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 import TermsOfServicePage from "./pages/TermsOfServicePage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard.jsx";
 import { useAuth } from "./hooks/useAuth.js";
 
 // Create a client
@@ -77,6 +79,22 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/superadmin"
+          element={
+            <ProtectedRoute>
+              <SuperAdminDashboard />
             </ProtectedRoute>
           }
         />

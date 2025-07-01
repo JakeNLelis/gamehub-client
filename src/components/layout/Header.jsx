@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.js";
-import { User, Settings, LogOut, ChevronDown, Search } from "lucide-react";
+import {
+  User,
+  Settings,
+  LogOut,
+  ChevronDown,
+  Search,
+  Shield,
+  Crown,
+} from "lucide-react";
 
 const Header = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
@@ -64,6 +72,30 @@ const Header = () => {
               >
                 Trending
               </Link>
+
+              {/* Admin Links - Show based on user role */}
+              {isAuthenticated &&
+                user &&
+                (user.role === "admin" || user.role === "superadmin") && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-1 text-blue-300 hover:text-blue-100 transition-colors"
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Admin</span>
+                  </Link>
+                )}
+
+              {/* SuperAdmin Link - Show only for superadmin */}
+              {isAuthenticated && user && user.role === "superadmin" && (
+                <Link
+                  to="/superadmin"
+                  className="flex items-center space-x-1 text-purple-300 hover:text-purple-100 transition-colors"
+                >
+                  <Crown className="w-4 h-4" />
+                  <span>SuperAdmin</span>
+                </Link>
+              )}
             </nav>
             {/* Search Button */}
             <Link
@@ -105,7 +137,53 @@ const Header = () => {
                         {user.name}
                       </p>
                       <p className="text-xs text-gray-400">{user.email}</p>
-                    </div>{" "}
+                      {/* Role Badge */}
+                      {user.role && user.role !== "user" && (
+                        <div className="mt-1">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              user.role === "superadmin"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {user.role === "superadmin"
+                              ? "Super Admin"
+                              : "Admin"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Admin Links in Mobile Dropdown */}
+                    {(user.role === "admin" || user.role === "superadmin") && (
+                      <div className="md:hidden border-b border-slate-700">
+                        <button
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            navigate("/admin");
+                          }}
+                          className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-blue-300 hover:bg-slate-700 hover:text-blue-100 transition-colors"
+                        >
+                          <Shield className="w-4 h-4" />
+                          <span>Admin Dashboard</span>
+                        </button>
+
+                        {user.role === "superadmin" && (
+                          <button
+                            onClick={() => {
+                              setIsDropdownOpen(false);
+                              navigate("/superadmin");
+                            }}
+                            className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-purple-300 hover:bg-slate-700 hover:text-purple-100 transition-colors"
+                          >
+                            <Crown className="w-4 h-4" />
+                            <span>SuperAdmin Dashboard</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       onClick={() => {
                         setIsDropdownOpen(false);
