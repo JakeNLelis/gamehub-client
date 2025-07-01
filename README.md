@@ -34,7 +34,6 @@ A comprehensive full-stack web application for discovering and managing free-to-
 - **Google OAuth 2.0** - Social authentication
 - **Helmet** - Security middleware
 - **Multer** - File upload handling
-- **Node-Cron** - Scheduled tasks
 - **Jest** - Testing framework
 
 ## 🚀 Getting Started
