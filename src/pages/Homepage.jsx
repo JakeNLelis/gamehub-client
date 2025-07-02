@@ -159,8 +159,21 @@ const Homepage = () => {
       {/* Hero Section - Hidden when showing search results */}
       {!searchResults && (
         <>
-          <section className="relative bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 py-20">
-            <div className="absolute inset-0 bg-black/30" />
+          <section className="relative bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 py-20 overflow-hidden">
+            {/* Background Image */}
+            <div className="absolute inset-0">
+              <img
+                src="/GameHub.png"
+                alt="GameHub Background"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            </div>
+            {/* Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/80 to-pink-900/80" />
+            <div className="absolute inset-0 bg-black/40" />
             <div className="relative container mx-auto px-6">
               <div className="text-center max-w-4xl mx-auto">
                 <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent">

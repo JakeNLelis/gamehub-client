@@ -2,14 +2,58 @@ import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import adminService from "../../services/adminService";
 
+// Constants for genres and platforms
+const GAME_GENRES = [
+  "Action",
+  "Adventure",
+  "Arcade",
+  "Battle Royale",
+  "Card Game",
+  "Casino",
+  "Fighting",
+  "First-Person Shooter",
+  "MMO",
+  "MMORPG",
+  "Puzzle",
+  "Racing",
+  "Real-Time Strategy",
+  "RPG",
+  "Simulation",
+  "Sports",
+  "Strategy",
+  "Third-Person Shooter",
+  "Tower Defense",
+  "Turn-Based Strategy",
+];
+
+const GAME_PLATFORMS = [
+  "Windows",
+  "Web Browser",
+  "Android",
+  "iOS",
+  "PlayStation",
+  "Xbox",
+  "Nintendo Switch",
+  "Mac",
+  "Linux",
+];
+
 const GameForm = ({ game, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: game?.title || "",
     thumbnail: game?.thumbnail || "",
     shortDescription: game?.shortDescription || "",
     gameUrl: game?.gameUrl || "",
-    genre: game?.genre || [""],
-    platform: game?.platform || [""],
+    genre: Array.isArray(game?.genre)
+      ? game.genre
+      : game?.genre
+      ? [game.genre]
+      : [],
+    platform: Array.isArray(game?.platform)
+      ? game.platform
+      : game?.platform
+      ? [game.platform]
+      : [],
     publisher: game?.publisher || "",
     developer: game?.developer || "",
     releaseDate: game?.releaseDate
@@ -66,11 +110,34 @@ const GameForm = ({ game, onClose, onSuccess }) => {
     }
   };
 
-  const handleArrayChange = (field, index, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => (i === index ? value : item)),
-    }));
+  // Handle checkbox selection for genres and platforms
+  const handleCheckboxChange = (field, value) => {
+    setFormData((prev) => {
+      const currentArray = prev[field] || [];
+      const isSelected = currentArray.includes(value);
+
+      if (isSelected) {
+        // Remove from array
+        return {
+          ...prev,
+          [field]: currentArray.filter((item) => item !== value),
+        };
+      } else {
+        // Add to array
+        return {
+          ...prev,
+          [field]: [...currentArray, value],
+        };
+      }
+    });
+
+    // Clear error when user makes selection
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
   };
 
   const handleThumbnailUpload = async (e) => {
@@ -205,22 +272,6 @@ const GameForm = ({ game, onClose, onSuccess }) => {
     setErrors((prev) => ({ ...prev, backgroundImage: "" }));
   };
 
-  const addArrayItem = (field) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: [...prev[field], ""],
-    }));
-  };
-
-  const removeArrayItem = (field, index) => {
-    if (formData[field].length > 1) {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: prev[field].filter((_, i) => i !== index),
-      }));
-    }
-  };
-
   const validateForm = () => {
     const newErrors = {};
 
@@ -237,11 +288,11 @@ const GameForm = ({ game, onClose, onSuccess }) => {
     if (!formData.releaseDate)
       newErrors.releaseDate = "Release date is required";
 
-    if (formData.genre.filter((g) => g.trim()).length === 0) {
+    if (!formData.genre || formData.genre.length === 0) {
       newErrors.genre = "At least one genre is required";
     }
 
-    if (formData.platform.filter((p) => p.trim()).length === 0) {
+    if (!formData.platform || formData.platform.length === 0) {
       newErrors.platform = "At least one platform is required";
     }
 
@@ -472,79 +523,131 @@ const GameForm = ({ game, onClose, onSuccess }) => {
               )}
             </div>
 
-            {/* Genre Array */}
+            {/* Genre Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-3">
                 Genres *
               </label>
-              {formData.genre.map((genre, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={genre}
-                    onChange={(e) =>
-                      handleArrayChange("genre", index, e.target.value)
-                    }
-                    className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
-                    placeholder="Enter genre"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem("genre", index)}
-                    disabled={formData.genre.length <= 1}
-                    className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Remove
-                  </button>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {GAME_GENRES.map((genre) => {
+                  const isSelected = formData.genre.includes(genre);
+                  return (
+                    <button
+                      key={genre}
+                      type="button"
+                      onClick={() => handleCheckboxChange("genre", genre)}
+                      className={`
+                        px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                        border-2 text-center
+                        ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-500 text-white shadow-lg"
+                            : "bg-slate-700 border-slate-600 text-gray-300 hover:border-blue-400 hover:bg-slate-600"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <div
+                          className={`
+                            w-4 h-4 rounded border-2 flex items-center justify-center
+                            ${
+                              isSelected
+                                ? "bg-white border-white"
+                                : "border-gray-400"
+                            }
+                          `}
+                        >
+                          {isSelected && (
+                            <svg
+                              className="w-3 h-3 text-blue-600"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span>{genre}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {formData.genre.length > 0 && (
+                <div className="mt-3 text-sm text-gray-400">
+                  Selected: {formData.genre.join(", ")}
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addArrayItem("genre")}
-                className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Add Genre
-              </button>
+              )}
               {errors.genre && (
-                <p className="text-red-400 text-sm mt-1">{errors.genre}</p>
+                <p className="text-red-400 text-sm mt-2">{errors.genre}</p>
               )}
             </div>
 
-            {/* Platform Array */}
+            {/* Platform Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-3">
                 Platforms *
               </label>
-              {formData.platform.map((platform, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={platform}
-                    onChange={(e) =>
-                      handleArrayChange("platform", index, e.target.value)
-                    }
-                    className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
-                    placeholder="Enter platform"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem("platform", index)}
-                    disabled={formData.platform.length <= 1}
-                    className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Remove
-                  </button>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {GAME_PLATFORMS.map((platform) => {
+                  const isSelected = formData.platform.includes(platform);
+                  return (
+                    <button
+                      key={platform}
+                      type="button"
+                      onClick={() => handleCheckboxChange("platform", platform)}
+                      className={`
+                        px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                        border-2 text-center
+                        ${
+                          isSelected
+                            ? "bg-green-600 border-green-500 text-white shadow-lg"
+                            : "bg-slate-700 border-slate-600 text-gray-300 hover:border-green-400 hover:bg-slate-600"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <div
+                          className={`
+                            w-4 h-4 rounded border-2 flex items-center justify-center
+                            ${
+                              isSelected
+                                ? "bg-white border-white"
+                                : "border-gray-400"
+                            }
+                          `}
+                        >
+                          {isSelected && (
+                            <svg
+                              className="w-3 h-3 text-green-600"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span>{platform}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {formData.platform.length > 0 && (
+                <div className="mt-3 text-sm text-gray-400">
+                  Selected: {formData.platform.join(", ")}
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addArrayItem("platform")}
-                className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Add Platform
-              </button>
+              )}
               {errors.platform && (
-                <p className="text-red-400 text-sm mt-1">{errors.platform}</p>
+                <p className="text-red-400 text-sm mt-2">{errors.platform}</p>
               )}
             </div>
 

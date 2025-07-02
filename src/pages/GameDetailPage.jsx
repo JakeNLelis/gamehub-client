@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 import { gameService } from "../services/gameService.js";
@@ -33,6 +33,9 @@ const GameDetailPage = () => {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [userReview, setUserReview] = useState(null);
+
+  // Ref for scrolling to review form
+  const reviewFormRef = useRef(null);
 
   // Load game data
   useEffect(() => {
@@ -116,12 +119,34 @@ const GameDetailPage = () => {
       if (isFavorite) {
         await gameService.removeFromFavorites(id);
         setIsFavorite(false);
+        // Optimistically update the favorites count
+        setGame((prev) => ({
+          ...prev,
+          inPlayersFavorites: Math.max(0, (prev.inPlayersFavorites || 0) - 1),
+        }));
       } else {
         await gameService.addToFavorites(id);
         setIsFavorite(true);
+        // Optimistically update the favorites count
+        setGame((prev) => ({
+          ...prev,
+          inPlayersFavorites: (prev.inPlayersFavorites || 0) + 1,
+        }));
       }
     } catch (error) {
       console.error("Error toggling favorite:", error);
+      // Revert optimistic update on error
+      if (isFavorite) {
+        setGame((prev) => ({
+          ...prev,
+          inPlayersFavorites: (prev.inPlayersFavorites || 0) + 1,
+        }));
+      } else {
+        setGame((prev) => ({
+          ...prev,
+          inPlayersFavorites: Math.max(0, (prev.inPlayersFavorites || 0) - 1),
+        }));
+      }
     } finally {
       setFavoriteLoading(false);
     }
@@ -187,6 +212,18 @@ const GameDetailPage = () => {
     }
   };
 
+  // Handle showing review form and scrolling to it
+  const handleShowReviewForm = () => {
+    setShowReviewForm(true);
+    // Scroll to review form after state update
+    setTimeout(() => {
+      reviewFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -213,121 +250,139 @@ const GameDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white relative">
-      {/* Background Image with Gradient Overlay */}
+      {/* Background Image with Limited Height */}
       {game.backgroundImage && (
-        <div className="absolute inset-0 z-0">
-          <img
-            src={game.backgroundImage}
-            alt={`${game.title} background`}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/90 to-slate-900"></div>
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="relative w-full h-[150vh]">
+            <img
+              src={game.backgroundImage}
+              alt={`${game.title} background`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
+            />
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-slate-900/60"></div>
+            {/* Gradient fade to background color */}
+            <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
+          </div>
         </div>
       )}
 
       <div className="relative z-10">
         <div className="container mx-auto px-6 py-8">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors mb-6 bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back</span>
-          </button>
+          {/* Header with Back Button and Edit Button */}
+          <div className="flex justify-between items-center mb-6">
+            {/* Back Button */}
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back</span>
+            </button>
+
+            {/* Admin Edit Button */}
+            {isAuthenticated &&
+              user &&
+              (user.role === "admin" || user.role === "superadmin") && (
+                <button
+                  onClick={() => navigate(`/admin?tab=games&edit=${game._id}`)}
+                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Edit Game</span>
+                </button>
+              )}
+          </div>
 
           {/* Game Header */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             {/* Game Image */}
-            <div className="relative group">
-              <div className="relative overflow-hidden rounded-lg shadow-2xl">
-                <img
-                  src={
-                    game.thumbnail ||
-                    "https://via.placeholder.com/600x400?text=Game"
-                  }
-                  alt={game.title}
-                  className="w-full h-96 object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/600x400?text=Game";
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-
-              {/* Favorite Button Overlay */}
+            <div className="relative">
+              <img
+                src={
+                  game.thumbnail ||
+                  "https://via.placeholder.com/800x450?text=Game"
+                }
+                alt={game.title}
+                className="w-full aspect-video object-contain bg-slate-800 rounded-lg shadow-lg"
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/800x450?text=Game";
+                }}
+              />
+              {/* Favorite Button */}
               <button
                 onClick={handleFavoriteToggle}
                 disabled={favoriteLoading}
-                className={`absolute top-4 right-4 p-3 rounded-full transition-all duration-200 backdrop-blur-sm ${
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
                   isFavorite
-                    ? "bg-red-600/90 hover:bg-red-700 text-white shadow-lg shadow-red-500/25"
-                    : "bg-slate-800/80 hover:bg-slate-700 text-gray-300 hover:text-white"
-                }`}
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-slate-800/80 hover:bg-slate-700 text-gray-300"
+                } ${favoriteLoading ? "animate-pulse" : ""}`}
               >
                 <Heart
-                  className={`w-6 h-6 transition-transform duration-200 ${
-                    isFavorite ? "fill-current scale-110" : "hover:scale-110"
-                  }`}
+                  className={`w-5 h-5 ${isFavorite ? "fill-current" : ""}`}
                 />
               </button>
             </div>
 
             {/* Game Info */}
-            <div className="space-y-6">
+            <div className="lg:col-span-2 space-y-6">
               {/* Game Title */}
               <div>
-                <h1 className="text-4xl font-bold mb-4 text-white leading-tight">
-                  {game.title}
-                </h1>
+                <h1 className="text-4xl font-bold mb-4">{game.title}</h1>
 
-                {/* Rating and Reviews Summary */}
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-4 py-2 rounded-xl border border-yellow-500/30">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                      <span className="text-lg font-bold text-yellow-400">
-                        {game.averageRating.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="w-px h-4 bg-yellow-500/30"></div>
-                    <span className="text-gray-300 text-sm">
-                      {reviews.length}{" "}
-                      {reviews.length === 1 ? "review" : "reviews"}
+                {/* Rating and Reviews */}
+                <div className="flex items-center space-x-6 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                    <span className="text-lg font-semibold">
+                      {game.averageRating.toFixed(1)}
+                    </span>
+                    <span className="text-gray-400">
+                      ({reviews.length}{" "}
+                      {reviews.length === 1 ? "review" : "reviews"})
                     </span>
                   </div>
-                  {game.totalReviews > reviews.length && (
-                    <span className="text-xs text-gray-500">
-                      ({game.totalReviews} total)
-                    </span>
+
+                  {/* Favorites Count */}
+                  {game.inPlayersFavorites > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <Heart className="w-4 h-4 text-red-400 fill-current" />
+                      <span className="text-gray-400">
+                        {game.inPlayersFavorites.toLocaleString()}{" "}
+                        {game.inPlayersFavorites === 1
+                          ? "favorite"
+                          : "favorites"}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
 
               {/* Game Details */}
-              <div className="space-y-4 mb-6">
-                {/* Genre Tags */}
+              <div className="space-y-4">
+                {/* Genre */}
                 {game.genre && (
                   <div>
-                    <span className="font-semibold text-gray-300 mb-2 block">
-                      Genres:
-                    </span>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                      Genre
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {Array.isArray(game.genre) ? (
                         game.genre.map((g, index) => (
                           <span
                             key={index}
-                            className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium"
+                            className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full text-sm"
                           >
                             {g}
                           </span>
                         ))
                       ) : (
-                        <span className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full text-sm">
                           {game.genre}
                         </span>
                       )}
@@ -335,25 +390,25 @@ const GameDetailPage = () => {
                   </div>
                 )}
 
-                {/* Platform Tags */}
+                {/* Platform */}
                 {game.platform && (
                   <div>
-                    <span className="font-semibold text-gray-300 mb-2 block">
-                      Platforms:
-                    </span>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                      Platform
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {Array.isArray(game.platform) ? (
                         game.platform.map((p, index) => (
                           <span
                             key={index}
-                            className="flex items-center space-x-1 bg-green-600/20 text-green-300 px-3 py-1 rounded-full text-sm font-medium"
+                            className="bg-green-600/20 text-green-300 px-3 py-1 rounded-full text-sm flex items-center space-x-1"
                           >
                             <Monitor className="w-3 h-3" />
                             <span>{p}</span>
                           </span>
                         ))
                       ) : (
-                        <span className="flex items-center space-x-1 bg-green-600/20 text-green-300 px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-green-600/20 text-green-300 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
                           <Monitor className="w-3 h-3" />
                           <span>{game.platform}</span>
                         </span>
@@ -362,63 +417,59 @@ const GameDetailPage = () => {
                   </div>
                 )}
 
-                {/* Game Info Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Additional Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {game.releaseDate && (
-                    <div className="bg-slate-800/50 backdrop-blur-sm p-3 rounded-lg">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                        Release Date
+                      </h3>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm text-gray-400">
-                          Release Date
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span>
+                          {new Date(game.releaseDate).toLocaleDateString()}
                         </span>
-                      </div>
-                      <div className="text-white font-medium mt-1">
-                        {new Date(game.releaseDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )}
                       </div>
                     </div>
                   )}
 
                   {game.developer && (
-                    <div className="bg-slate-800/50 backdrop-blur-sm p-3 rounded-lg">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                        Developer
+                      </h3>
                       <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-purple-400" />
-                        <span className="text-sm text-gray-400">Developer</span>
-                      </div>
-                      <div className="text-white font-medium mt-1">
-                        {game.developer}
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span>{game.developer}</span>
                       </div>
                     </div>
                   )}
 
                   {game.publisher && (
-                    <div className="bg-slate-800/50 backdrop-blur-sm p-3 rounded-lg">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                        Publisher
+                      </h3>
                       <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-orange-400" />
-                        <span className="text-sm text-gray-400">Publisher</span>
-                      </div>
-                      <div className="text-white font-medium mt-1">
-                        {game.publisher}
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span>{game.publisher}</span>
                       </div>
                     </div>
                   )}
 
-                  {game.inPlayersFavorites > 0 && (
-                    <div className="bg-slate-800/50 backdrop-blur-sm p-3 rounded-lg">
+                  {/* Community Favorites */}
+                  {game.inPlayersFavorites >= 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                        Community Favorites
+                      </h3>
                       <div className="flex items-center space-x-2">
-                        <Heart className="w-4 h-4 text-red-400" />
-                        <span className="text-sm text-gray-400">
-                          Popularity
+                        <Heart className="w-4 h-4 text-red-400 fill-current" />
+                        <span>
+                          {game.inPlayersFavorites > 0
+                            ? `by ${game.inPlayersFavorites.toLocaleString()} members`
+                            : "Be the first"}
                         </span>
-                      </div>
-                      <div className="text-white font-medium mt-1">
-                        {game.inPlayersFavorites.toLocaleString()} favorites
                       </div>
                     </div>
                   )}
@@ -433,7 +484,7 @@ const GameDetailPage = () => {
                     href={game.gameUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-6 py-4 rounded-lg font-bold transition-all duration-200 flex items-center justify-center space-x-2 text-white no-underline shadow-lg shadow-green-600/25 hover:shadow-green-600/40 transform hover:scale-105"
+                    className="w-full bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 text-white no-underline"
                   >
                     <ExternalLink className="w-5 h-5" />
                     <span>Play Game</span>
@@ -444,8 +495,8 @@ const GameDetailPage = () => {
                   <>
                     {!userReview ? (
                       <button
-                        onClick={() => setShowReviewForm(true)}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40"
+                        onClick={handleShowReviewForm}
+                        className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
                       >
                         <MessageSquare className="w-5 h-5" />
                         <span>Write a Review</span>
@@ -454,14 +505,14 @@ const GameDetailPage = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEditReview(userReview)}
-                          className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 px-4 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/25"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 px-4 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
                         >
                           <Edit3 className="w-4 h-4" />
                           <span>Edit Review</span>
                         </button>
                         <button
                           onClick={() => handleDeleteReview(userReview._id)}
-                          className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 px-4 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg shadow-red-600/25"
+                          className="bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg font-semibold transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -471,7 +522,7 @@ const GameDetailPage = () => {
                 ) : (
                   <button
                     onClick={() => navigate("/login")}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg shadow-blue-600/25 hover:shadow-purple-600/40"
+                    className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition-colors"
                   >
                     Login to Review & Favorite
                   </button>
@@ -482,14 +533,11 @@ const GameDetailPage = () => {
 
           {/* Game Description */}
           {(game.shortDescription || game.short_description) && (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 mb-8">
-              <h2 className="text-2xl font-bold mb-4 text-white flex items-center space-x-2">
-                <MessageSquare className="w-6 h-6 text-blue-400" />
-                <span>About This Game</span>
-              </h2>
-              <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+            <div className="bg-slate-800 rounded-lg p-6 mb-8">
+              <h2 className="text-2xl font-bold mb-4">About This Game</h2>
+              <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
                 {game.shortDescription || game.short_description}
-              </div>
+              </p>
             </div>
           )}
 
@@ -499,14 +547,14 @@ const GameDetailPage = () => {
             game.minStorage ||
             game.minProcessor ||
             game.minGraphics) && (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 mb-8">
-              <h2 className="text-2xl font-bold mb-4 text-white flex items-center space-x-2">
-                <Monitor className="w-6 h-6 text-purple-400" />
+            <div className="bg-slate-800 rounded-lg p-6 mb-8">
+              <h2 className="text-2xl font-bold mb-4 flex items-center space-x-2">
+                <Monitor className="w-6 h-6" />
                 <span>System Requirements</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {game.minOS && (
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-400 mb-1">
                       Operating System
                     </div>
@@ -514,7 +562,7 @@ const GameDetailPage = () => {
                   </div>
                 )}
                 {game.minProcessor && (
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-400 mb-1">Processor</div>
                     <div className="text-white font-medium">
                       {game.minProcessor}
@@ -522,7 +570,7 @@ const GameDetailPage = () => {
                   </div>
                 )}
                 {game.minMemory && (
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-400 mb-1">Memory</div>
                     <div className="text-white font-medium">
                       {game.minMemory}
@@ -530,7 +578,7 @@ const GameDetailPage = () => {
                   </div>
                 )}
                 {game.minGraphics && (
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-400 mb-1">Graphics</div>
                     <div className="text-white font-medium">
                       {game.minGraphics}
@@ -538,15 +586,15 @@ const GameDetailPage = () => {
                   </div>
                 )}
                 {game.minStorage && (
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-400 mb-1">Storage</div>
                     <div className="text-white font-medium">
                       {game.minStorage}
                     </div>
                   </div>
                 )}
-                <div className="bg-slate-700/50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Remember</div>
+                <div className="bg-slate-700 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Storage</div>
                   <div className="text-white font-medium">
                     Specifications may change during development
                   </div>
@@ -557,9 +605,12 @@ const GameDetailPage = () => {
 
           {/* Review Form */}
           {showReviewForm && (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 mb-8 border border-slate-700/50">
-              <h3 className="text-xl font-bold mb-4 text-white flex items-center space-x-2">
-                <Edit3 className="w-5 h-5 text-blue-400" />
+            <div
+              ref={reviewFormRef}
+              className="bg-slate-800 rounded-lg p-6 mb-8"
+            >
+              <h3 className="text-xl font-bold mb-4 flex items-center space-x-2">
+                <Edit3 className="w-5 h-5" />
                 <span>
                   {editingReview ? "Edit Your Review" : "Write a Review"}
                 </span>
@@ -595,7 +646,7 @@ const GameDetailPage = () => {
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder="Share your thoughts about this game..."
-                    className="w-full px-3 py-2 bg-slate-700/80 backdrop-blur-sm border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                     rows={4}
                     maxLength={1000}
                     required
@@ -632,9 +683,9 @@ const GameDetailPage = () => {
           )}
 
           {/* Reviews Section */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
-            <h2 className="text-2xl font-bold mb-6 text-white flex items-center space-x-2">
-              <MessageSquare className="w-6 h-6 text-green-400" />
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+              <MessageSquare className="w-6 h-6" />
               <span>Reviews ({reviews.length})</span>
             </h2>
 
@@ -647,27 +698,28 @@ const GameDetailPage = () => {
                 {reviews.map((review) => (
                   <div
                     key={review._id}
-                    className="bg-slate-700/50 backdrop-blur-sm rounded-lg p-4 border border-slate-600/50"
+                    className="bg-slate-700 rounded-lg p-4 border border-slate-600"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        {review.userId.profilePicture ? (
+                        {review.userId.avatar ? (
                           <img
-                            src={review.userId.profilePicture}
-                            alt={review.userId.name}
-                            className="w-10 h-10 rounded-full ring-2 ring-slate-600"
+                            src={review.userId.avatar}
+                            alt={review.userId.username || review.userId.name}
+                            className="w-10 h-10 rounded-full"
                           />
                         ) : (
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold">
-                              {review.userId.name?.charAt(0)?.toUpperCase() ||
-                                "U"}
+                              {(review.userId.username || review.userId.name)
+                                ?.charAt(0)
+                                ?.toUpperCase() || "U"}
                             </span>
                           </div>
                         )}
                         <div>
                           <h4 className="font-semibold text-white">
-                            {review.userId.name}
+                            {review.userId.username || review.userId.name}
                           </h4>
                           <div className="flex items-center space-x-1">
                             {[...Array(5)].map((_, i) => (
@@ -683,11 +735,11 @@ const GameDetailPage = () => {
                           </div>
                         </div>
                       </div>
-                      <span className="text-sm text-gray-400 bg-slate-800/50 px-2 py-1 rounded">
+                      <span className="text-sm text-gray-400">
                         {new Date(review.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-gray-300 leading-relaxed">
+                    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
                       {review.content || review.comment}
                     </p>
                   </div>
@@ -695,9 +747,7 @@ const GameDetailPage = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="bg-slate-700/30 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-10 h-10 text-gray-500" />
-                </div>
+                <MessageSquare className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-400 mb-2">
                   No reviews yet
                 </h3>
@@ -708,8 +758,8 @@ const GameDetailPage = () => {
             )}
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
     </div>
   );
 };

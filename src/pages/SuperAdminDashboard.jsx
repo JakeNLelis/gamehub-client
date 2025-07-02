@@ -50,7 +50,8 @@ const SuperAdminDashboard = () => {
             Super Admin Dashboard
           </h1>
           <p className="text-gray-400">
-            Welcome, {user.name}! You have full administrative access.
+            Welcome, {user.username || user.name}! You have full administrative
+            access.
           </p>
         </div>
 
