@@ -702,21 +702,11 @@ const GameDetailPage = () => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        {review.userId.avatar ? (
-                          <img
-                            src={review.userId.avatar}
-                            alt={review.userId.username || review.userId.name}
-                            className="w-10 h-10 rounded-full"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold">
-                              {(review.userId.username || review.userId.name)
-                                ?.charAt(0)
-                                ?.toUpperCase() || "U"}
-                            </span>
-                          </div>
-                        )}
+                        <img
+                          src={review.userId.avatar}
+                          alt={review.userId.username || review.userId.name}
+                          className="w-10 h-10 rounded-full"
+                        />
                         <div>
                           <h4 className="font-semibold text-white">
                             {review.userId.username || review.userId.name}

@@ -140,7 +140,11 @@ const ReviewManagement = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                        {(review.userId?.name || "U").charAt(0).toUpperCase()}
+                        <img
+                          src={review.userId.avatar}
+                          alt={review.userId.username || review.userId.name}
+                          className="w-10 h-10 rounded-full"
+                        />
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
