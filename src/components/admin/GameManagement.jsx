@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import adminService from "../../services/adminService";
+import { gameService } from "../../services/gameService";
 import LoadingSpinner from "../common/LoadingSpinner";
 import GameForm from "./GameForm";
 import GamesTable from "./GamesTable";
 
-const GameManagement = () => {
+const GameManagement = ({ editGameId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -22,6 +23,24 @@ const GameManagement = () => {
 
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Handle automatic edit form opening when editGameId is provided
+  useEffect(() => {
+    if (editGameId) {
+      // Fetch the specific game for editing
+      gameService
+        .getGameById(editGameId)
+        .then((response) => {
+          if (response.success && response.data) {
+            setEditingGame(response.data);
+            setShowForm(true);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching game for edit:", error);
+        });
+    }
+  }, [editGameId]);
 
   const { data, isLoading, error, isFetching } = useQuery({
     queryKey: ["admin-games", currentPage, debouncedSearch],

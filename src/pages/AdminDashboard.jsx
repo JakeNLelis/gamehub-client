@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useLocation } from "react-router-dom";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import AdminStats from "../components/admin/AdminStats";
 import GameManagement from "../components/admin/GameManagement";
@@ -7,7 +8,18 @@ import ReviewManagement from "../components/admin/ReviewManagement";
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Handle URL parameters for direct navigation to specific tabs and actions
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+
+    if (tab && ["overview", "games", "reviews"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   if (loading) {
     return (
@@ -77,7 +89,11 @@ const AdminDashboard = () => {
         {/* Tab Content */}
         <div className="bg-slate-800 rounded-lg shadow-xl">
           {activeTab === "overview" && <AdminStats />}
-          {activeTab === "games" && <GameManagement />}
+          {activeTab === "games" && (
+            <GameManagement
+              editGameId={new URLSearchParams(location.search).get("edit")}
+            />
+          )}
           {activeTab === "reviews" && <ReviewManagement />}
         </div>
       </div>
