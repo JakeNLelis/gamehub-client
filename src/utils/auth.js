@@ -46,7 +46,19 @@ export const isAuthenticated = () => {
 
 // Format API errors for display
 export const formatApiError = (error) => {
+  // If we have a detailed error message from the API, use that
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+
   if (error.response?.data?.error) {
+    // For validation errors, try to provide more specific information
+    if (
+      error.response.data.error === "VALIDATION_ERROR" &&
+      error.response?.data?.field
+    ) {
+      return `${error.response.data.field}: ${error.response.data.message}`;
+    }
     return error.response.data.error;
   }
 

@@ -13,6 +13,7 @@ const UserProfile = () => {
   const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user?.name || "");
+  const [editedUsername, setEditedUsername] = useState(user?.username || "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -27,14 +28,44 @@ const UserProfile = () => {
       return;
     }
 
+    if (!editedUsername.trim()) {
+      setError("Username is required");
+      return;
+    }
+
+    // Client-side username validation
+    if (editedUsername.trim().length < 3) {
+      setError("Username must be at least 3 characters long");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9._]+$/.test(editedUsername.trim())) {
+      setError(
+        "Username can only contain letters, numbers, dots, and underscores"
+      );
+      return;
+    }
+
     try {
       setError("");
-      await updateProfileMutation.mutateAsync({ name: editedName.trim() });
+      await updateProfileMutation.mutateAsync({
+        name: editedName.trim(),
+        username: editedUsername.trim(),
+      });
       setIsEditing(false);
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(formatApiError(err));
+      const errorMessage = formatApiError(err);
+
+      // More user-friendly error for duplicate username
+      if (errorMessage.includes("username is already taken")) {
+        setError(
+          `Username '@${editedUsername.trim()}' is already taken. Please choose a different one.`
+        );
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 
@@ -163,35 +194,53 @@ const UserProfile = () => {
           <div className="flex-1">
             <div className="flex items-center space-x-3 mb-2">
               {isEditing ? (
-                <div className="flex items-center space-x-2 flex-1">
+                <div className="flex flex-col space-y-2 flex-1">
                   <input
                     type="text"
                     value={editedName}
                     onChange={(e) => setEditedName(e.target.value)}
-                    className="bg-slate-700 text-white placeholder-gray-400 px-3 py-2 rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none flex-1"
+                    className={`bg-slate-700 text-white placeholder-gray-400 px-3 py-2 rounded-lg border ${
+                      error && error.toLowerCase().includes("name")
+                        ? "border-red-500 focus:ring-red-500/20"
+                        : "border-slate-600 focus:ring-blue-500/20"
+                    } focus:border-blue-500 focus:ring-2 focus:outline-none w-full`}
                     placeholder="Enter your name"
                   />
-                  <button
-                    onClick={handleSaveProfile}
-                    disabled={updateProfileMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <Save className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditedName(user.name);
-                      setError("");
-                    }}
-                    className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <input
+                    type="text"
+                    value={editedUsername}
+                    onChange={(e) => setEditedUsername(e.target.value)}
+                    className={`bg-slate-700 text-white placeholder-gray-400 px-3 py-2 rounded-lg border ${
+                      error && error.toLowerCase().includes("username")
+                        ? "border-red-500 focus:ring-red-500/20"
+                        : "border-slate-600 focus:ring-blue-500/20"
+                    } focus:border-blue-500 focus:ring-2 focus:outline-none w-full`}
+                    placeholder="Enter your username"
+                  />
+                  <div className="flex space-x-2 mt-2">
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={updateProfileMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50 flex items-center"
+                    >
+                      <Save className="w-4 h-4 mr-1" /> Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedName(user.name);
+                        setEditedUsername(user.username);
+                        setError("");
+                      }}
+                      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors flex items-center"
+                    >
+                      <X className="w-4 h-4 mr-1" /> Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold text-white">{user.name}</h1>
+                  <h1 className="text-xl font-bold text-white">{user.name}</h1>
                   <button
                     onClick={() => setIsEditing(true)}
                     className="bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white p-2 rounded-lg transition-colors"
@@ -201,10 +250,12 @@ const UserProfile = () => {
                 </>
               )}
             </div>
-            <p className="text-gray-300 text-lg">{user.email}</p>
-            <p className="text-gray-400 text-sm">
-              Member since {new Date(user.createdAt).toLocaleDateString()}
-            </p>
+            <p className="text-gray-300 text-[1rem]">{user.email}</p>
+            {user.username && (
+              <p className="text-blue-400 text-[1rem] font-medium">
+                @{user.username}
+              </p>
+            )}
           </div>
         </div>
 
