@@ -9,6 +9,7 @@ import {
   Search,
   Shield,
   Crown,
+  TrendingUp,
 } from "lucide-react";
 
 const Header = () => {
@@ -116,13 +117,15 @@ const Header = () => {
                   {user.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
-                      alt={user.name}
+                      alt={user.username || user.name}
                       className="h-8 w-8 rounded-full border-2 border-gray-600"
                     />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
-                        {user.name?.charAt(0)?.toUpperCase() || "U"}
+                        {(user.username || user.name)
+                          ?.charAt(0)
+                          ?.toUpperCase() || "U"}
                       </span>
                     </div>
                   )}
@@ -134,7 +137,7 @@ const Header = () => {
                   <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-lg border border-slate-700 py-2 z-50">
                     <div className="px-4 py-2 border-b border-slate-700">
                       <p className="text-sm font-medium text-white">
-                        {user.name}
+                        {user.username || user.name}
                       </p>
                       <p className="text-xs text-gray-400">{user.email}</p>
                       {/* Role Badge */}
@@ -166,7 +169,7 @@ const Header = () => {
                           className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-blue-300 hover:bg-slate-700 hover:text-blue-100 transition-colors"
                         >
                           <Shield className="w-4 h-4" />
-                          <span>Admin Dashboard</span>
+                          <span>Admin</span>
                         </button>
 
                         {user.role === "superadmin" && (
@@ -178,11 +181,22 @@ const Header = () => {
                             className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-purple-300 hover:bg-slate-700 hover:text-purple-100 transition-colors"
                           >
                             <Crown className="w-4 h-4" />
-                            <span>SuperAdmin Dashboard</span>
+                            <span>SuperAdmin</span>
                           </button>
                         )}
                       </div>
                     )}
+
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        navigate("/trending");
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 hover:text-white transition-colors md:hidden"
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                      <span>Trending</span>
+                    </button>
 
                     <button
                       onClick={() => {

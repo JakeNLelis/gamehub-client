@@ -144,10 +144,10 @@ const ReviewManagement = () => {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
-                          {review.userId?.name || "Unknown User"}
+                          {review.userId?.username || "Unknown User"}
                         </div>
-                        <div className="text-xs text-gray-400">
-                          {review.userId?.email || "No email"}
+                        <div className="text-xs text-gray-500 group-hover:text-blue-300 transition-colors">
+                          {review.userId?.name || "Unknown User"}
                         </div>
                       </div>
                     </div>

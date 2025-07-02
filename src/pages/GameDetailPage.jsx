@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 import { gameService } from "../services/gameService.js";
@@ -33,6 +33,9 @@ const GameDetailPage = () => {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [userReview, setUserReview] = useState(null);
+
+  // Ref for scrolling to review form
+  const reviewFormRef = useRef(null);
 
   // Load game data
   useEffect(() => {
@@ -207,6 +210,18 @@ const GameDetailPage = () => {
     } catch (error) {
       console.error("Error deleting review:", error);
     }
+  };
+
+  // Handle showing review form and scrolling to it
+  const handleShowReviewForm = () => {
+    setShowReviewForm(true);
+    // Scroll to review form after state update
+    setTimeout(() => {
+      reviewFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
   };
 
   if (loading) {
@@ -452,7 +467,7 @@ const GameDetailPage = () => {
                         <Heart className="w-4 h-4 text-red-400 fill-current" />
                         <span>
                           {game.inPlayersFavorites > 0
-                            ? `${game.inPlayersFavorites.toLocaleString()} members`
+                            ? `by ${game.inPlayersFavorites.toLocaleString()} members`
                             : "Be the first"}
                         </span>
                       </div>
@@ -480,7 +495,7 @@ const GameDetailPage = () => {
                   <>
                     {!userReview ? (
                       <button
-                        onClick={() => setShowReviewForm(true)}
+                        onClick={handleShowReviewForm}
                         className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
                       >
                         <MessageSquare className="w-5 h-5" />
@@ -590,7 +605,10 @@ const GameDetailPage = () => {
 
           {/* Review Form */}
           {showReviewForm && (
-            <div className="bg-slate-800 rounded-lg p-6 mb-8">
+            <div
+              ref={reviewFormRef}
+              className="bg-slate-800 rounded-lg p-6 mb-8"
+            >
               <h3 className="text-xl font-bold mb-4 flex items-center space-x-2">
                 <Edit3 className="w-5 h-5" />
                 <span>
@@ -684,23 +702,24 @@ const GameDetailPage = () => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        {review.userId.profilePicture ? (
+                        {review.userId.avatar ? (
                           <img
-                            src={review.userId.profilePicture}
-                            alt={review.userId.name}
+                            src={review.userId.avatar}
+                            alt={review.userId.username || review.userId.name}
                             className="w-10 h-10 rounded-full"
                           />
                         ) : (
                           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold">
-                              {review.userId.name?.charAt(0)?.toUpperCase() ||
-                                "U"}
+                              {(review.userId.username || review.userId.name)
+                                ?.charAt(0)
+                                ?.toUpperCase() || "U"}
                             </span>
                           </div>
                         )}
                         <div>
                           <h4 className="font-semibold text-white">
-                            {review.userId.name}
+                            {review.userId.username || review.userId.name}
                           </h4>
                           <div className="flex items-center space-x-1">
                             {[...Array(5)].map((_, i) => (

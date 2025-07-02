@@ -136,25 +136,25 @@ const UserManagement = () => {
                     {user.avatar ? (
                       <img
                         src={user.avatar}
-                        alt={user.name}
+                        alt={user.username || user.name}
                         className="w-10 h-10 rounded-full"
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
                         <span className="text-gray-300 font-medium">
-                          {user.name?.charAt(0)?.toUpperCase() || "U"}
+                          {(user.username || user.name)
+                            ?.charAt(0)
+                            ?.toUpperCase() || "U"}
                         </span>
                       </div>
                     )}
                     <div className="ml-4">
                       <div className="text-sm font-medium text-white">
-                        {user.name}
+                        {user.username || user.name}
                       </div>
                       <div className="text-sm text-gray-400">{user.email}</div>
-                      {user.username && (
-                        <div className="text-xs text-gray-400">
-                          @{user.username}
-                        </div>
+                      {user.username && user.name !== user.username && (
+                        <div className="text-xs text-gray-400">{user.name}</div>
                       )}
                     </div>
                   </div>
@@ -180,7 +180,7 @@ const UserManagement = () => {
                             user._id,
                             user.role,
                             "admin",
-                            user.name
+                            user.username || user.name
                           )
                         }
                         className="text-blue-400 hover:text-blue-300 transition-colors"
@@ -198,7 +198,7 @@ const UserManagement = () => {
                               user._id,
                               user.role,
                               "superadmin",
-                              user.name
+                              user.username || user.name
                             )
                           }
                           className="text-purple-400 hover:text-purple-300 transition-colors"
@@ -212,7 +212,7 @@ const UserManagement = () => {
                               user._id,
                               user.role,
                               "user",
-                              user.name
+                              user.username || user.name
                             )
                           }
                           className="text-orange-400 hover:text-orange-300 transition-colors"
@@ -230,7 +230,7 @@ const UserManagement = () => {
                             user._id,
                             user.role,
                             "admin",
-                            user.name
+                            user.username || user.name
                           )
                         }
                         className="text-orange-400 hover:text-orange-300 transition-colors"

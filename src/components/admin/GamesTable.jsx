@@ -230,93 +230,147 @@ const GamesTable = ({
 
       {/* Enhanced Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 bg-slate-800 rounded-xl p-6 border border-slate-700">
-          <div className="flex items-center space-x-2 text-sm text-gray-300">
+        <div className="mt-8 flex flex-col space-y-4 bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700">
+          {/* Stats - Hide on very small screens */}
+          <div className="hidden sm:flex items-center justify-center space-x-2 text-sm text-gray-300">
             <span className="font-medium">Showing</span>
-            <span className="px-3 py-1 bg-blue-600 text-white rounded-full font-semibold">
+            <span className="px-2 py-1 bg-blue-600 text-white rounded-full font-semibold text-xs">
               {(pagination.currentPage - 1) * pagination.gamesPerPage + 1}
             </span>
             <span>to</span>
-            <span className="px-3 py-1 bg-blue-600 text-white rounded-full font-semibold">
+            <span className="px-2 py-1 bg-blue-600 text-white rounded-full font-semibold text-xs">
               {Math.min(
                 pagination.currentPage * pagination.gamesPerPage,
                 pagination.totalGames
               )}
             </span>
             <span>of</span>
-            <span className="px-3 py-1 bg-purple-600 text-white rounded-full font-semibold">
+            <span className="px-2 py-1 bg-purple-600 text-white rounded-full font-semibold text-xs">
               {pagination.totalGames}
             </span>
             <span>games</span>
           </div>
 
-          <div className="flex items-center space-x-2">
+          {/* Mobile stats - Show only on small screens */}
+          <div className="sm:hidden text-center text-sm text-gray-300">
+            <span className="font-medium">
+              Page {pagination.currentPage} of {pagination.totalPages}
+            </span>
+            <span className="block text-xs text-gray-400 mt-1">
+              ({pagination.totalGames} total games)
+            </span>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+            {/* First page button - Hide on mobile */}
             <button
               onClick={() => setCurrentPage(1)}
               disabled={pagination.currentPage === 1}
-              className="inline-flex items-center px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
+              className="hidden sm:inline-flex items-center px-2 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
               title="First page"
             >
               <span>⏮️</span>
             </button>
 
+            {/* Previous button */}
             <button
               onClick={() => setCurrentPage(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className="inline-flex items-center px-4 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
+              className="inline-flex items-center px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
             >
-              <span className="mr-2">←</span>
-              Previous
+              <span className="sm:mr-2">←</span>
+              <span className="hidden sm:inline">Previous</span>
             </button>
 
-            {/* Page Numbers */}
+            {/* Page Numbers - Fewer on mobile */}
             <div className="flex items-center space-x-1">
-              {[...Array(Math.min(5, pagination.totalPages))].map(
-                (_, index) => {
-                  let pageNumber;
-                  if (pagination.totalPages <= 5) {
-                    pageNumber = index + 1;
-                  } else if (pagination.currentPage <= 3) {
-                    pageNumber = index + 1;
-                  } else if (
-                    pagination.currentPage >=
-                    pagination.totalPages - 2
-                  ) {
-                    pageNumber = pagination.totalPages - 4 + index;
-                  } else {
-                    pageNumber = pagination.currentPage - 2 + index;
-                  }
+              {/* Mobile: Show 3 pages, Desktop: Show 5 pages */}
+              <div className="flex items-center space-x-1 sm:hidden">
+                {[...Array(Math.min(3, pagination.totalPages))].map(
+                  (_, index) => {
+                    let pageNumber;
+                    if (pagination.totalPages <= 3) {
+                      pageNumber = index + 1;
+                    } else if (pagination.currentPage <= 2) {
+                      pageNumber = index + 1;
+                    } else if (
+                      pagination.currentPage >=
+                      pagination.totalPages - 1
+                    ) {
+                      pageNumber = pagination.totalPages - 2 + index;
+                    } else {
+                      pageNumber = pagination.currentPage - 1 + index;
+                    }
 
-                  return (
-                    <button
-                      key={pageNumber}
-                      onClick={() => setCurrentPage(pageNumber)}
-                      className={`w-10 h-10 rounded-lg font-semibold transition-all duration-200 ${
-                        pageNumber === pagination.currentPage
-                          ? "bg-blue-600 text-white border-2 border-blue-400"
-                          : "bg-slate-700 text-gray-300 border border-slate-600 hover:bg-slate-600 hover:text-white"
-                      }`}
-                    >
-                      {pageNumber}
-                    </button>
-                  );
-                }
-              )}
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`w-8 h-8 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                          pageNumber === pagination.currentPage
+                            ? "bg-blue-600 text-white border-2 border-blue-400"
+                            : "bg-slate-700 text-gray-300 border border-slate-600 hover:bg-slate-600 hover:text-white"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+
+              {/* Desktop: Show 5 pages */}
+              <div className="hidden sm:flex items-center space-x-1">
+                {[...Array(Math.min(5, pagination.totalPages))].map(
+                  (_, index) => {
+                    let pageNumber;
+                    if (pagination.totalPages <= 5) {
+                      pageNumber = index + 1;
+                    } else if (pagination.currentPage <= 3) {
+                      pageNumber = index + 1;
+                    } else if (
+                      pagination.currentPage >=
+                      pagination.totalPages - 2
+                    ) {
+                      pageNumber = pagination.totalPages - 4 + index;
+                    } else {
+                      pageNumber = pagination.currentPage - 2 + index;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`w-10 h-10 rounded-lg font-semibold transition-all duration-200 ${
+                          pageNumber === pagination.currentPage
+                            ? "bg-blue-600 text-white border-2 border-blue-400"
+                            : "bg-slate-700 text-gray-300 border border-slate-600 hover:bg-slate-600 hover:text-white"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
             </div>
 
+            {/* Next button */}
             <button
               onClick={() => setCurrentPage(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className="inline-flex items-center px-4 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
+              className="inline-flex items-center px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
             >
-              Next
-              <span className="ml-2">→</span>
+              <span className="hidden sm:inline">Next</span>
+              <span className="sm:ml-2">→</span>
             </button>
 
+            {/* Last page button - Hide on mobile */}
             <button
               onClick={() => setCurrentPage(pagination.totalPages)}
               disabled={pagination.currentPage === pagination.totalPages}
-              className="inline-flex items-center px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
+              className="hidden sm:inline-flex items-center px-2 py-2 border border-slate-600 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700"
               title="Last page"
             >
               <span>⏭️</span>

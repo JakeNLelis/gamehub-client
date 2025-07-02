@@ -51,20 +51,34 @@ const Footer = () => {
               Your ultimate destination for game discovery, reviews, and
               community engagement. Join thousands of gamers worldwide.
             </p>
-
             {/* Social Links */}
             <div className="flex space-x-4">
-              <a href="#" className="group">
+              <a
+                href="https://www.linkedin.com/in/nietzchan-jake-lelis-0b818a35b/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
                 <div className="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center group-hover:bg-blue-600 transition-all duration-300 group-hover:scale-110">
                   <Linkedin className="w-5 h-5 text-gray-400 group-hover:text-white" />
                 </div>
               </a>{" "}
-              <a href="#" className="group">
+              <a
+                href="jake.lelis05@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
                 <div className="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center group-hover:bg-indigo-600 transition-all duration-300 group-hover:scale-110">
                   <Mail className="w-5 h-5 text-gray-400 group-hover:text-white" />
                 </div>
               </a>
-              <a href="#" className="group">
+              <a
+                href="https://github.com/JakeNLelis"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
                 <div className="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center group-hover:bg-gray-600 transition-all duration-300 group-hover:scale-110">
                   <Github className="w-5 h-5 text-gray-400 group-hover:text-white" />
                 </div>
@@ -81,7 +95,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <Link
-                  to="/games"
+                  to="/search"
                   className="text-gray-400 hover:text-white transition-all duration-300 flex items-center space-x-2 group"
                 >
                   <span className="w-1.5 h-1.5 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
@@ -99,11 +113,20 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/favorites"
+                  to="/trending"
                   className="text-gray-400 hover:text-white transition-all duration-300 flex items-center space-x-2 group"
                 >
                   <span className="w-1.5 h-1.5 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  <span>Favorites</span>
+                  <span>Trending</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/trending?tab=new"
+                  className="text-gray-400 hover:text-white transition-all duration-300 flex items-center space-x-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  <span>New Release</span>
                 </Link>
               </li>
             </ul>

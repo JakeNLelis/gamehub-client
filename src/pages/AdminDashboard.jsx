@@ -60,7 +60,7 @@ const AdminDashboard = () => {
             Admin Dashboard
           </h1>
           <p className="text-gray-400">
-            Welcome, {user.name}! Manage your GameHub platform.
+            Welcome, {user.username || user.name}! Manage your GameHub platform.
           </p>
         </div>
 
