@@ -3,7 +3,7 @@
   <h1>GameHub</h1>
   <p><strong>Your Gateway to Gaming Discovery</strong></p>
   
-  ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+  ![License](https://img.shields.io/badge/license-CC-blue.svg)
   ![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
 </div>
 
@@ -58,7 +58,7 @@
 ---
 
 <div align="center">
-  <p>GameHub is open source under the <a href="LICENSE">MIT License</a></p>
+  <p>GameHub is open source under the <a href="LICENSE">Creative Commons Legal Code Licence</a></p>
   
   <a href="#top">Back to top ⬆️</a>
 </div>
