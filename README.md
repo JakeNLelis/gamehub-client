@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/GameHub.png" alt="GameHub Logo" width="200" />
+  <img src="public/joystick.png" alt="GameHub Logo" width="100" />
   <h1>GameHub</h1>
   <p><strong>Your Gateway to Gaming Discovery</strong></p>
   
